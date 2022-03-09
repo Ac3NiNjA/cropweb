@@ -71,13 +71,14 @@ export const ImageDropzone = ({ onPreparedImage, visible }: ImageDropzoneProps) 
 };
 
 const FromUrl = ({ onInput }: { onInput: (f: Blob, name: string) => Promise<void> }) => {
+  const toast = useToast();
   const [url, setUrl] = useState("");
   const [fetching, setFetching] = useState(false);
-  const toast = useToast();
+  const canFetch = url.startsWith("http") && !fetching;
 
-  const onDownloadClicked = async () => {
+  const fetchImage = async () => {
+    if (!canFetch) return;
     try {
-      if (!url.trim()) return;
       setFetching(true);
       const blob = await (await fetch(url)).blob();
       const pathname = new URL(url).pathname;
@@ -111,15 +112,16 @@ const FromUrl = ({ onInput }: { onInput: (f: Blob, name: string) => Promise<void
           value={url}
           onChange={(evt) => setUrl(evt.target.value)}
           onDrop={(evt) => setUrl(evt.dataTransfer.getData("text"))}
+          onKeyPress={(evt) => evt.key === "Enter" && fetchImage()}
         />
         <InputRightElement
           children={
             <IconButton
-              disabled={!url.startsWith("http") || fetching}
+              disabled={!canFetch}
               variant={"ghost"}
               aria-label={"Load image from URL"}
               icon={<MdDownload size={"1.2em"} />}
-              onClick={onDownloadClicked}
+              onClick={fetchImage}
             />
           }
         />
