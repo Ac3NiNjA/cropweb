@@ -10,7 +10,7 @@ import {
 } from "@chakra-ui/react";
 import { MdDownload, MdLink, MdPhoto } from "react-icons/md";
 import { useState } from "react";
-import { toBase64 } from "@utils";
+import { remoteFetch, toBase64 } from "@utils";
 import { OnPreparedImageFn } from "@src/types";
 
 type UseImageInputProps = { onPreparedImage: OnPreparedImageFn };
@@ -80,14 +80,15 @@ const FromUrl = ({ onInput }: { onInput: (f: Blob, name: string) => Promise<void
     if (!canFetch) return;
     try {
       setFetching(true);
-      const blob = await (await fetch(url)).blob();
+      const res = await remoteFetch(url);
+      if (res.status !== 200) throw new Error(`Request was not successful`);
+
+      const blob = await res.blob();
       const pathname = new URL(url).pathname;
       const sIndex = pathname.lastIndexOf("/");
       const name = sIndex < 0 ? pathname : pathname.substring(sIndex + 1);
       onInput(blob, name);
     } catch (error) {
-      console.error("Error Loading Image", error);
-      // TODO: show hint if cors error, or .. fallback to proxy?
       toast({
         title: "Error Loading Image",
         description: (error as Error)?.message || "Unknown Error",

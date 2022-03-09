@@ -80,3 +80,10 @@ export const shortenName = (filename: string) => {
   if (len < max) return filename;
   return `${filename.slice(0, sl)}....${filename.slice(len - sl)}`;
 };
+
+export const remoteFetch = async (url: string) => {
+  return fetch(url).catch(() =>
+    // TODO: check err type
+    fetch(`https://odd-band-95fc.marea.workers.dev/?${encodeURIComponent(url)}`)
+  );
+};
