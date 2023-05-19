@@ -46,22 +46,32 @@ export const saveFile = (href: string, filename: string) => {
   aTag.click();
 };
 
-export const calculateXAlignments = (
-  imageWidth?: number | null,
-  cropWidth?: number
-): { [key in Alignment]: number } => {
-  const obj = {
-    [Alignment.L]: 0,
+type Val = number | null | undefined;
+export const calculateAlignments = (
+  image: { height?: Val; width?: Val },
+  crop: { height?: Val; width?: Val }
+): { y: { [key in Alignment]: number }; x: { [key in Alignment]: number } } => {
+  const defaults = {
+    [Alignment.L]: 0, // Top or Left, doesn't need to be calculated.
     [Alignment.M]: 0,
     [Alignment.R]: 0,
   };
 
-  if (imageWidth && cropWidth) {
-    obj[Alignment.M] = (imageWidth - cropWidth) / 2;
-    obj[Alignment.R] = imageWidth - cropWidth;
-  }
+  const xy = {
+    x: { ...defaults },
+    y: { ...defaults },
+  };
 
-  return obj;
+  const cal = (pos: keyof typeof xy, iw: Val, cw: Val) => {
+    if (!iw || !cw) return;
+    xy[pos][Alignment.M] = (iw - cw) / 2; // Center
+    xy[pos][Alignment.R] = iw - cw; // Right or Bottom
+  };
+
+  cal("x", image.width, crop.width);
+  cal("y", image.height, crop.height);
+
+  return xy;
 };
 
 export const calculatePxFromSize = (px: number, size: Size) => {

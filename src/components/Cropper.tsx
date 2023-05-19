@@ -2,13 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "react-image-crop/dist/ReactCrop.css";
 import ReactCrop from "react-image-crop";
 import { useToast } from "@chakra-ui/react";
-import {
-  calculatePxFromSize,
-  calculateXAlignments,
-  cropImage,
-  saveFile,
-  shortenName,
-} from "@utils";
+import { calculatePxFromSize, calculateAlignments, cropImage, saveFile, shortenName } from "@utils";
 import { CropPanel, CropPanelProps } from "./CropPanel";
 import { useCropOptions, useSelectedRatio, useSelectedSize } from "@src/store";
 import ImageDropzone from "./ImageDropzone";
@@ -100,13 +94,18 @@ export const Cropper = () => {
     setFilename("");
   };
 
-  const imageWidth = imgRef.current?.width;
-  const xAlignments = useMemo(
-    () => calculateXAlignments(imageWidth, crop.width),
-    [crop.width, imageWidth]
+  const width = imgRef.current?.width;
+  const height = imgRef.current?.height;
+  const computedAlignments = useMemo(
+    () => calculateAlignments({ height, width }, { height: crop.height, width: crop.width }),
+    [height, crop.height, crop.width, width]
   );
-  const onAlignmentChange: CropPanelProps["onAlignmentChange"] = (alignment) => {
-    setCrop({ ...crop, x: xAlignments[alignment] });
+
+  const onAlignmentChange: CropPanelProps["onAlignmentChange"] = (alignment, pos) => {
+    setCrop((crop) => ({
+      ...crop,
+      [pos]: computedAlignments[pos][alignment],
+    }));
   };
 
   return (

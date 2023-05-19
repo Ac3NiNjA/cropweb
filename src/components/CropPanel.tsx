@@ -3,6 +3,7 @@ import { Alignment, IRatio, OnPreparedImageFn, Size } from "@src/types";
 import {
   Box,
   Button,
+  Flex,
   IconButton,
   Tooltip,
   useColorModeValue,
@@ -10,9 +11,21 @@ import {
   Wrap,
   WrapItem,
 } from "@chakra-ui/react";
-import { MdGridOn, MdGridOff, MdLockOutline, MdLockOpen } from "react-icons/md";
+import {
+  MdGridOn,
+  MdGridOff,
+  MdLockOutline,
+  MdLockOpen,
+  MdAlignHorizontalCenter,
+  MdAlignHorizontalLeft,
+  MdAlignHorizontalRight,
+  MdAlignVerticalBottom,
+  MdAlignVerticalCenter,
+  MdAlignVerticalTop,
+} from "react-icons/md";
 import ReactCrop from "react-image-crop";
 import { useImageInput } from "./ImageDropzone";
+import type { IconType } from "react-icons";
 
 // TODO: short description for each ratio as tooltip?
 /** Aspect should be unique. */
@@ -27,7 +40,7 @@ const alignments = Object.values(Alignment);
 const sizes = Object.values(Size);
 
 export interface CropPanelProps {
-  onAlignmentChange: (a: Alignment) => void;
+  onAlignmentChange: (a: Alignment, pos: "x" | "y") => void;
   onSaveClicked: () => void;
   onUnloadClicked: () => void;
   onPreparedImage: OnPreparedImageFn;
@@ -50,7 +63,7 @@ export const CropPanel = ({
       <WrapItem>
         <Box bg={bg} p={1} rounded={"md"}>
           <AspectRatioSelector />
-          <XAlignmentSelector onAlignmentClicked={onAlignmentChange} />
+          <AlignmentSelector onAlignmentClicked={onAlignmentChange} />
           <SizeSelector />
         </Box>
       </WrapItem>
@@ -121,23 +134,62 @@ const AspectRatioSelector = () => {
   );
 };
 
-type XAlignmentSelectorProps = { onAlignmentClicked: (alignment: Alignment) => void };
-const XAlignmentSelector = ({ onAlignmentClicked }: XAlignmentSelectorProps) => {
+const xIcons: { [key in Alignment]: IconType } = {
+  [Alignment.L]: MdAlignHorizontalLeft,
+  [Alignment.M]: MdAlignHorizontalCenter,
+  [Alignment.R]: MdAlignHorizontalRight,
+};
+
+const yIcons: { [key in Alignment]: IconType } = {
+  [Alignment.L]: MdAlignVerticalTop,
+  [Alignment.M]: MdAlignVerticalCenter,
+  [Alignment.R]: MdAlignVerticalBottom,
+};
+
+type AlignmentSelectorProps = {
+  onAlignmentClicked: CropPanelProps["onAlignmentChange"];
+};
+
+const AlignmentSelector = ({ onAlignmentClicked }: AlignmentSelectorProps) => {
   return (
     <>
       <div className="font-bold text-center text-xl pt-2 leading-6">Alignment</div>
-      {/* Options */}
-      <div className="text-center">
-        {alignments.map((alignment) => (
-          <button
-            key={`ALIGNMENT_${alignment}`}
-            className="px-1"
-            onClick={() => onAlignmentClicked(alignment)}
-          >
-            {alignment}
-          </button>
-        ))}
-      </div>
+
+      {/* x */}
+      <Flex>
+        {alignments.map((alignment) => {
+          const Icon = xIcons[alignment];
+
+          return (
+            <IconButton
+              key={alignment}
+              aria-label={`Align ${alignment}`}
+              variant="ghost"
+              flexGrow={1}
+              onClick={() => onAlignmentClicked(alignment, "x")}
+              icon={<Icon />}
+            />
+          );
+        })}
+      </Flex>
+
+      {/* y */}
+      <Flex>
+        {alignments.map((alignment) => {
+          const Icon = yIcons[alignment];
+
+          return (
+            <IconButton
+              key={alignment}
+              aria-label={`Align ${alignment}`}
+              variant="ghost"
+              flexGrow={1}
+              onClick={() => onAlignmentClicked(alignment, "y")}
+              icon={<Icon />}
+            />
+          );
+        })}
+      </Flex>
     </>
   );
 };
